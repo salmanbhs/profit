@@ -1,69 +1,87 @@
 <!DOCTYPE html>
 <html lang="en">
-
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Daily Profit Dashboard</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Profit Dashboard</title>
   <style>
     body {
       font-family: Arial, sans-serif;
+      background: #f4f4f4;
+      margin: 0;
       padding: 20px;
-      background-color: #f4f4f4;
     }
 
     h1 {
       text-align: center;
     }
 
-    .account-selector {
-      margin-bottom: 20px;
+    .tabs {
       display: flex;
-      gap: 10px;
-      align-items: center;
-      flex-wrap: wrap;
+      justify-content: center;
+      margin-bottom: 20px;
     }
 
-    .account-selector label {
+    .tab-btn {
+      padding: 10px 20px;
+      cursor: pointer;
+      border: none;
+      background-color: #ddd;
+      margin: 0 5px;
+      border-radius: 6px;
       font-weight: bold;
     }
 
-    .account-selector select {
+    .tab-btn.active {
+      background-color: #007bff;
+      color: white;
+    }
+
+    .tab-content {
+      display: none;
+    }
+
+    .tab-content.active {
+      display: block;
+    }
+
+    .account-selector, .account-add {
+      margin-bottom: 20px;
+    }
+
+    select, input {
       padding: 8px;
       border-radius: 6px;
       border: 1px solid #ccc;
-      min-width: 200px;
+      margin: 5px;
     }
 
-    .account-add {
-      display: flex;
-      gap: 10px;
-      flex-wrap: wrap;
-      margin-bottom: 30px;
-    }
-
-    .account-add input {
-      padding: 8px 12px;
-      border-radius: 6px;
-      border: 1px solid #ccc;
-      min-width: 180px;
-      box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
-    }
-
-    .account-add button {
+    button {
       padding: 8px 16px;
-      border-radius: 6px;
       border: none;
+      border-radius: 6px;
       background-color: #007bff;
       color: white;
       font-weight: bold;
       cursor: pointer;
-      transition: background-color 0.3s ease;
-      box-shadow: 0 1px 3px rgba(0, 0, 0, 0.2);
     }
 
-    .account-add button:hover {
-      background-color: #0056b3;
+    .account-list {
+      margin-top: 20px;
+    }
+
+    .account-item {
+      display: flex;
+      justify-content: space-between;
+      background: white;
+      padding: 10px;
+      margin-bottom: 10px;
+      border-radius: 6px;
+      box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+    }
+
+    .account-item button {
+      background: red;
     }
 
     .month-container {
@@ -86,229 +104,214 @@
       gap: 10px;
     }
 
-    @keyframes fadeIn {
-      from {
-        opacity: 0;
-        transform: translateY(10px);
-      }
-
-      to {
-        opacity: 1;
-        transform: translateY(0);
-      }
-    }
-
     .day-card {
       background: white;
       border-radius: 8px;
       padding: 10px;
-      box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
       text-align: center;
       animation: fadeIn 0.4s ease both;
     }
 
-    @keyframes glow {
-      0% {
-        box-shadow: 0 0 5px 2px rgba(0, 255, 0, 0.7);
-      }
-
-      50% {
-        box-shadow: 0 0 15px 4px rgba(0, 255, 0, 1);
-      }
-
-      100% {
-        box-shadow: 0 0 5px 2px rgba(0, 255, 0, 0.7);
-      }
-    }
-
-    @keyframes glowRed {
-      0% {
-        box-shadow: 0 0 5px 2px rgba(255, 0, 0, 0.7);
-      }
-
-      50% {
-        box-shadow: 0 0 15px 4px rgba(255, 0, 0, 1);
-      }
-
-      100% {
-        box-shadow: 0 0 5px 2px rgba(255, 0, 0, 0.7);
-      }
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(10px); }
+      to   { opacity: 1; transform: translateY(0); }
     }
 
     .day-card.best-day {
-      /* box-shadow: 0 0 10px 2px lime; */
       border: 2px solid lime;
       animation: glow 1.5s infinite;
     }
 
     .day-card.worst-day {
-      /* box-shadow: 0 0 10px 2px red; */
       border: 2px solid red;
       animation: glowRed 1.5s infinite;
     }
 
-    .positive {
-      color: green;
+    @keyframes glow {
+      0% { box-shadow: 0 0 5px 2px rgba(0, 255, 0, 0.7); }
+      50% { box-shadow: 0 0 15px 4px rgba(0, 255, 0, 1); }
+      100% { box-shadow: 0 0 5px 2px rgba(0, 255, 0, 0.7); }
     }
 
-    .negative {
-      color: red;
+    @keyframes glowRed {
+      0% { box-shadow: 0 0 5px 2px rgba(255, 0, 0, 0.7); }
+      50% { box-shadow: 0 0 15px 4px rgba(255, 0, 0, 1); }
+      100% { box-shadow: 0 0 5px 2px rgba(255, 0, 0, 0.7); }
     }
   </style>
 </head>
-
 <body>
+
   <h1>Daily Profit Dashboard</h1>
 
-
-  <div class="account-selector">
-    <label for="account">Select Account:</label>
-    <select id="account"></select>
+  <div class="tabs">
+    <button class="tab-btn active" onclick="switchTab('dashboard')">Dashboard</button>
+    <button class="tab-btn" onclick="switchTab('manage')">Manage Accounts</button>
   </div>
 
-  <div class="account-add">
-    <input type="text" id="newAccountName" placeholder="Account Name">
-    <input type="number" id="newAccountId" placeholder="Account ID">
-    <input type="number" id="newAccountFee" placeholder="Fee">
-    <button onclick="addAccount()">Add Account</button>
+  <div id="dashboard" class="tab-content active">
+    <div class="account-selector">
+      <label for="account">Select Account:</label>
+      <select id="account" onchange="fetchData()"></select>
+    </div>
+    <div id="results"></div>
   </div>
 
-
-  <div id="results"></div>
+  <div id="manage" class="tab-content">
+    <div class="account-add">
+      <input type="text" id="newAccountName" placeholder="Account Name" />
+      <input type="text" id="newAccountInput" placeholder="Account ID or URL" />
+      <input type="number" id="newAccountFee" placeholder="Fee (%)" />
+      <button onclick="addAccount()">Add Account</button>
+    </div>
+    <div class="account-list" id="accountList"></div>
+  </div>
 
   <script>
-    const storedAccounts = JSON.parse(localStorage.getItem('accounts')) || [
-      { name: "Lotteries Risk", id: 110219570, fee: 30 },
-      { name: "Scalp gold 2", id: 110207233, fee: 30 },
-      { name: "Bahrain gold", id: 110163991, fee: 30 },
-      { name: "Zain autotrade 1", id: 11984168, fee: 10 },
-      { name: "Zain autotrade 2", id: 110012807, fee: 10 },
-      { name: "EURUSD", id: 110133610, fee: 5 },
-    ];
-
     const accountSelect = document.getElementById("account");
     const resultsDiv = document.getElementById("results");
+    const accountListDiv = document.getElementById("accountList");
+
+    let storedAccounts = JSON.parse(localStorage.getItem("accounts")) || [
+      { name: "Lotteries Risk", id: 110219570, fee: 30 },
+      { name: "Scalp gold 2", id: 110207233, fee: 30 },
+      { name: "Zain autotrade 1", id: 11984168, fee: 10 },
+    ];
+
+    function saveAccounts() {
+      localStorage.setItem("accounts", JSON.stringify(storedAccounts));
+    }
 
     function populateAccounts() {
-      accountSelect.innerHTML = '';
-      storedAccounts.forEach((acc, index) => {
+      accountSelect.innerHTML = "";
+      storedAccounts.forEach((acc, i) => {
         const opt = document.createElement("option");
-        opt.value = index;
+        opt.value = i;
         opt.textContent = acc.name;
         accountSelect.appendChild(opt);
       });
+    }
+
+    function updateAccountList() {
+      accountListDiv.innerHTML = "";
+      storedAccounts.forEach((acc, index) => {
+        const div = document.createElement("div");
+        div.className = "account-item";
+        div.innerHTML = `<span>${acc.name} (ID: ${acc.id}, Fee: ${acc.fee}%)</span>
+          <button onclick="deleteAccount(${index})">Delete</button>`;
+        accountListDiv.appendChild(div);
+      });
+    }
+
+    function deleteAccount(index) {
+      storedAccounts.splice(index, 1);
+      saveAccounts();
+      populateAccounts();
+      updateAccountList();
       fetchData();
+    }
+
+    function extractAccountId(input) {
+      const urlPattern = /strategy\/(\d+)/;
+      if (/^\d+$/.test(input)) {
+        return parseInt(input);
+      } else {
+        const match = input.match(urlPattern);
+        return match ? parseInt(match[1]) : null;
+      }
     }
 
     function addAccount() {
       const name = document.getElementById("newAccountName").value.trim();
-      const id = parseInt(document.getElementById("newAccountId").value);
-      const fee = parseInt(document.getElementById("newAccountFee").value);
-      if (name && id) {
-        storedAccounts.push({ name, id, fee });
-        localStorage.setItem("accounts", JSON.stringify(storedAccounts));
-        populateAccounts();
-        document.getElementById("newAccountName").value = '';
-        document.getElementById("newAccountId").value = '';
-        document.getElementById("newAccountFee").value = 0;
+      const input = document.getElementById("newAccountInput").value.trim();
+      const fee = parseFloat(document.getElementById("newAccountFee").value);
+
+      const id = extractAccountId(input);
+
+      if (!name || !id) {
+        alert("Please enter a valid account name and ID or URL.");
+        return;
       }
+
+      storedAccounts.push({ name, id, fee });
+      saveAccounts();
+      populateAccounts();
+      updateAccountList();
+
+      document.getElementById("newAccountName").value = '';
+      document.getElementById("newAccountInput").value = '';
+      document.getElementById("newAccountFee").value = '';
     }
 
     async function fetchData() {
-      const selectedIndex = parseInt(accountSelect.value);
-      const account = storedAccounts[selectedIndex];
-      const accId = account.id;
-      const fee = account.fee || 0;
+      resultsDiv.innerHTML = "";
+      const selected = storedAccounts[accountSelect.value];
+      const fee = selected.fee || 0;
+      const baseUrl = selected.url || `https://social-trading.exness.com/st/v1/managers/accounts/${selected.id}/stats/profitability/`;
 
       const now = new Date();
-      const currentMonth = now.getMonth() + 1;
-      const currentYear = now.getFullYear();
-
-      resultsDiv.innerHTML = '';
-
-      const fetchMonths = [];
+      const months = [];
       for (let i = 0; i < 12; i++) {
-        let date = new Date(currentYear, currentMonth - 1 - i);
-        fetchMonths.push({
-          year: date.getFullYear(),
-          month: date.getMonth() + 1
-        });
+        const date = new Date(now.getFullYear(), now.getMonth() - i);
+        months.push({ year: date.getFullYear(), month: date.getMonth() + 1 });
       }
 
-
-      for (const { year, month } of fetchMonths) {
-        const res = await fetch(`https://social-trading.exness.com/st/v1/managers/accounts/${accId}/stats/profitability/?year=${year}&month=${month}`);
-        const json = await res.json();
-        renderMonth(year, month, json.result.data, json.result.total, fee);
+      for (const { year, month } of months) {
+        try {
+          const res = await fetch(`${baseUrl}?year=${year}&month=${month}`);
+          const json = await res.json();
+          renderMonth(year, month, json.result.data, json.result.total, fee);
+        } catch (e) {
+          console.warn("Fetch failed", e);
+        }
       }
     }
 
     function renderMonth(year, month, data, total, fee) {
       const container = document.createElement("div");
       container.className = "month-container";
+
       const title = document.createElement("div");
       title.className = "month-title";
-      title.textContent = `${year}-${String(month).padStart(2, '0')}`;
+      title.textContent = `${year}-${String(month).padStart(2, "0")}`;
 
       const totalDiv = document.createElement("div");
       totalDiv.className = "total-profit";
-      let afterFeesText = '';
-      if (total > 0 && fee) {
-        const afterFees = total * (1 - fee / 100);
-        afterFeesText = ` | Total After Fees (${fee}%): ${afterFees.toFixed(2)}%`;
-      }
-      totalDiv.textContent = `Total Profit: ${total.toFixed(2)}%${afterFeesText}`;
+      const afterFee = total * (1 - fee / 100);
+      totalDiv.textContent = `Total: ${total.toFixed(2)}% | After Fee (${fee}%): ${afterFee.toFixed(2)}%`;
 
       const grid = document.createElement("div");
       grid.className = "days-grid";
-      // First, find the best and worst day
-      const maxDay = data.reduce((a, b) => (a.profitability > b.profitability ? a : b), data[0]);
-      const minDay = data.reduce((a, b) => (a.profitability < b.profitability ? a : b), data[0]);
 
-      data.forEach((day, i) => {
+      if (!Array.isArray(data) || data.length === 0) return;
+
+      const max = data.reduce((a, b) => a.profitability > b.profitability ? a : b, data[0]);
+      const min = data.reduce((a, b) => a.profitability < b.profitability ? a : b, data[0]);
+
+      data.forEach((d) => {
         const card = document.createElement("div");
         card.className = "day-card";
-        card.style.animationDelay = `${i * 40}ms`;
+        if(max.key != min.key){
+        if (d.key === max.key) card.classList.add("best-day");
+        if (d.key === min.key) card.classList.add("worst-day");
+        }
 
-        const profit = Math.max(-100, Math.min(100, day.profitability)); // Clamp -100 to 100
-
+        const pct = d.profitability;
         let r, g, b;
-        if (profit >= 0) {
+        if (pct >= 0) {
           g = 255;
-          r = b = Math.floor(255 - (profit * 2.5));
+          r = b = 255 - pct * 2.5;
         } else {
           r = 255;
-          g = b = Math.floor(255 - (Math.abs(profit) * 2.5));
+          g = b = 255 - Math.abs(pct) * 2.5;
         }
 
-        const backgroundColor = `rgb(${r}, ${g}, ${b})`;
-        card.style.backgroundColor = backgroundColor;
-
-        // Calculate luminance to choose readable text color
+        card.style.backgroundColor = `rgb(${r},${g},${b})`;
         const luminance = 0.299 * r + 0.587 * g + 0.114 * b;
-        const textColor = luminance > 140 ? 'black' : 'white';
-        card.style.color = textColor;
-
-        // Highlight best and worst days
-        if (day.key === maxDay.key) {
-          card.classList.add("best-day");
-          card.title = '📈 Best Day';
-        } else if (day.key === minDay.key) {
-          card.classList.add("worst-day");
-          card.title = '📉 Worst Day';
-        }
-
-
-        card.innerHTML = `
-    <div><strong>Day ${day.key}</strong></div>
-    <div>${day.profitability}%</div>
-  `;
-
+        card.style.color = luminance > 150 ? "black" : "white";
+        card.innerHTML = `<strong>Day ${d.key}</strong><br>${pct.toFixed(2)}%`;
         grid.appendChild(card);
       });
-
-
-
 
       container.appendChild(title);
       container.appendChild(totalDiv);
@@ -316,9 +319,17 @@
       resultsDiv.appendChild(container);
     }
 
-    accountSelect.addEventListener("change", fetchData);
-    populateAccounts();
-  </script>
-</body>
+    function switchTab(tab) {
+      document.querySelectorAll('.tab-content').forEach(t => t.classList.remove('active'));
+      document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+      document.getElementById(tab).classList.add('active');
+      document.querySelector(`.tab-btn[onclick="switchTab('${tab}')"]`).classList.add('active');
+    }
 
+    populateAccounts();
+    updateAccountList();
+    fetchData();
+  </script>
+
+</body>
 </html>
