@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
@@ -10,65 +11,179 @@
       padding: 20px;
       background-color: #f4f4f4;
     }
+
     h1 {
       text-align: center;
     }
+
     .account-selector {
       margin-bottom: 20px;
       display: flex;
       gap: 10px;
       align-items: center;
+      flex-wrap: wrap;
     }
+
+    .account-selector label {
+      font-weight: bold;
+    }
+
+    .account-selector select {
+      padding: 8px;
+      border-radius: 6px;
+      border: 1px solid #ccc;
+      min-width: 200px;
+    }
+
+    .account-add {
+      display: flex;
+      gap: 10px;
+      flex-wrap: wrap;
+      margin-bottom: 30px;
+    }
+
+    .account-add input {
+      padding: 8px 12px;
+      border-radius: 6px;
+      border: 1px solid #ccc;
+      min-width: 180px;
+      box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+    }
+
+    .account-add button {
+      padding: 8px 16px;
+      border-radius: 6px;
+      border: none;
+      background-color: #007bff;
+      color: white;
+      font-weight: bold;
+      cursor: pointer;
+      transition: background-color 0.3s ease;
+      box-shadow: 0 1px 3px rgba(0, 0, 0, 0.2);
+    }
+
+    .account-add button:hover {
+      background-color: #0056b3;
+    }
+
     .month-container {
       margin-bottom: 40px;
     }
+
     .month-title {
       font-size: 1.2em;
       margin: 10px 0;
     }
+
     .total-profit {
       font-weight: bold;
       margin-bottom: 10px;
     }
+
     .days-grid {
       display: grid;
       grid-template-columns: repeat(auto-fit, minmax(100px, 1fr));
       gap: 10px;
     }
+
+    @keyframes fadeIn {
+      from {
+        opacity: 0;
+        transform: translateY(10px);
+      }
+
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+
     .day-card {
       background: white;
       border-radius: 8px;
       padding: 10px;
-      box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+      box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
       text-align: center;
+      animation: fadeIn 0.4s ease both;
     }
-    .positive { color: green; }
-    .negative { color: red; }
+
+    @keyframes glow {
+      0% {
+        box-shadow: 0 0 5px 2px rgba(0, 255, 0, 0.7);
+      }
+
+      50% {
+        box-shadow: 0 0 15px 4px rgba(0, 255, 0, 1);
+      }
+
+      100% {
+        box-shadow: 0 0 5px 2px rgba(0, 255, 0, 0.7);
+      }
+    }
+
+    @keyframes glowRed {
+      0% {
+        box-shadow: 0 0 5px 2px rgba(255, 0, 0, 0.7);
+      }
+
+      50% {
+        box-shadow: 0 0 15px 4px rgba(255, 0, 0, 1);
+      }
+
+      100% {
+        box-shadow: 0 0 5px 2px rgba(255, 0, 0, 0.7);
+      }
+    }
+
+    .day-card.best-day {
+      /* box-shadow: 0 0 10px 2px lime; */
+      border: 2px solid lime;
+      animation: glow 1.5s infinite;
+    }
+
+    .day-card.worst-day {
+      /* box-shadow: 0 0 10px 2px red; */
+      border: 2px solid red;
+      animation: glowRed 1.5s infinite;
+    }
+
+    .positive {
+      color: green;
+    }
+
+    .negative {
+      color: red;
+    }
   </style>
 </head>
+
 <body>
   <h1>Daily Profit Dashboard</h1>
+
 
   <div class="account-selector">
     <label for="account">Select Account:</label>
     <select id="account"></select>
-    <button onclick="addAccount()">Add Account</button>
-    <input type="text" id="newAccountName" placeholder="Name">
-    <input type="number" id="newAccountId" placeholder="ID">
-    <input type="number" id="newAccountFee" placeholder="Fee">
-
   </div>
+
+  <div class="account-add">
+    <input type="text" id="newAccountName" placeholder="Account Name">
+    <input type="number" id="newAccountId" placeholder="Account ID">
+    <input type="number" id="newAccountFee" placeholder="Fee">
+    <button onclick="addAccount()">Add Account</button>
+  </div>
+
 
   <div id="results"></div>
 
   <script>
     const storedAccounts = JSON.parse(localStorage.getItem('accounts')) || [
-      { name: "Lotteries Risk", id: 110219570 , fee: 30  },
-      { name: "Scalp gold 2", id: 110207233 , fee: 30 },
-      { name: "Bahrain gold", id: 110163991 , fee: 30 },
-      { name: "Zain autotrade 1", id: 11984168 , fee: 10 },
-      { name: "Zain autotrade 2", id: 110012807, fee: 10  },
-      { name: "EURUSD", id: 110133610 , fee: 5 },
+      { name: "Lotteries Risk", id: 110219570, fee: 30 },
+      { name: "Scalp gold 2", id: 110207233, fee: 30 },
+      { name: "Bahrain gold", id: 110163991, fee: 30 },
+      { name: "Zain autotrade 1", id: 11984168, fee: 10 },
+      { name: "Zain autotrade 2", id: 110012807, fee: 10 },
+      { name: "EURUSD", id: 110133610, fee: 5 },
     ];
 
     const accountSelect = document.getElementById("account");
@@ -146,15 +261,54 @@
 
       const grid = document.createElement("div");
       grid.className = "days-grid";
-      data.forEach(day => {
+      // First, find the best and worst day
+      const maxDay = data.reduce((a, b) => (a.profitability > b.profitability ? a : b), data[0]);
+      const minDay = data.reduce((a, b) => (a.profitability < b.profitability ? a : b), data[0]);
+
+      data.forEach((day, i) => {
         const card = document.createElement("div");
         card.className = "day-card";
+        card.style.animationDelay = `${i * 40}ms`;
+
+        const profit = Math.max(-100, Math.min(100, day.profitability)); // Clamp -100 to 100
+
+        let r, g, b;
+        if (profit >= 0) {
+          g = 255;
+          r = b = Math.floor(255 - (profit * 2.5));
+        } else {
+          r = 255;
+          g = b = Math.floor(255 - (Math.abs(profit) * 2.5));
+        }
+
+        const backgroundColor = `rgb(${r}, ${g}, ${b})`;
+        card.style.backgroundColor = backgroundColor;
+
+        // Calculate luminance to choose readable text color
+        const luminance = 0.299 * r + 0.587 * g + 0.114 * b;
+        const textColor = luminance > 140 ? 'black' : 'white';
+        card.style.color = textColor;
+
+        // Highlight best and worst days
+        if (day.key === maxDay.key) {
+          card.classList.add("best-day");
+          card.title = '📈 Best Day';
+        } else if (day.key === minDay.key) {
+          card.classList.add("worst-day");
+          card.title = '📉 Worst Day';
+        }
+
+
         card.innerHTML = `
-          <div><strong>Day ${day.key}</strong></div>
-          <div class="${day.profitability < 0 ? 'negative' : 'positive'}">${day.profitability}%</div>
-        `;
+    <div><strong>Day ${day.key}</strong></div>
+    <div>${day.profitability}%</div>
+  `;
+
         grid.appendChild(card);
       });
+
+
+
 
       container.appendChild(title);
       container.appendChild(totalDiv);
@@ -166,4 +320,5 @@
     populateAccounts();
   </script>
 </body>
+
 </html>
