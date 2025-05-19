@@ -1,0 +1,169 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Daily Profit Dashboard</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      padding: 20px;
+      background-color: #f4f4f4;
+    }
+    h1 {
+      text-align: center;
+    }
+    .account-selector {
+      margin-bottom: 20px;
+      display: flex;
+      gap: 10px;
+      align-items: center;
+    }
+    .month-container {
+      margin-bottom: 40px;
+    }
+    .month-title {
+      font-size: 1.2em;
+      margin: 10px 0;
+    }
+    .total-profit {
+      font-weight: bold;
+      margin-bottom: 10px;
+    }
+    .days-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(100px, 1fr));
+      gap: 10px;
+    }
+    .day-card {
+      background: white;
+      border-radius: 8px;
+      padding: 10px;
+      box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+      text-align: center;
+    }
+    .positive { color: green; }
+    .negative { color: red; }
+  </style>
+</head>
+<body>
+  <h1>Daily Profit Dashboard</h1>
+
+  <div class="account-selector">
+    <label for="account">Select Account:</label>
+    <select id="account"></select>
+    <button onclick="addAccount()">Add Account</button>
+    <input type="text" id="newAccountName" placeholder="Name">
+    <input type="number" id="newAccountId" placeholder="ID">
+    <input type="number" id="newAccountFee" placeholder="Fee">
+
+  </div>
+
+  <div id="results"></div>
+
+  <script>
+    const storedAccounts = JSON.parse(localStorage.getItem('accounts')) || [
+      { name: "Lotteries Risk", id: 110219570 , fee: 30  },
+      { name: "Scalp gold 2", id: 110207233 , fee: 30 },
+      { name: "Bahrain gold", id: 110163991 , fee: 30 },
+      { name: "Zain autotrade 1", id: 11984168 , fee: 10 },
+      { name: "Zain autotrade 2", id: 110012807, fee: 10  },
+      { name: "EURUSD", id: 110133610 , fee: 5 },
+    ];
+
+    const accountSelect = document.getElementById("account");
+    const resultsDiv = document.getElementById("results");
+
+    function populateAccounts() {
+      accountSelect.innerHTML = '';
+      storedAccounts.forEach((acc, index) => {
+        const opt = document.createElement("option");
+        opt.value = index;
+        opt.textContent = acc.name;
+        accountSelect.appendChild(opt);
+      });
+      fetchData();
+    }
+
+    function addAccount() {
+      const name = document.getElementById("newAccountName").value.trim();
+      const id = parseInt(document.getElementById("newAccountId").value);
+      const fee = parseInt(document.getElementById("newAccountFee").value);
+      if (name && id) {
+        storedAccounts.push({ name, id, fee });
+        localStorage.setItem("accounts", JSON.stringify(storedAccounts));
+        populateAccounts();
+        document.getElementById("newAccountName").value = '';
+        document.getElementById("newAccountId").value = '';
+        document.getElementById("newAccountFee").value = 0;
+      }
+    }
+
+    async function fetchData() {
+      const selectedIndex = parseInt(accountSelect.value);
+      const account = storedAccounts[selectedIndex];
+      const accId = account.id;
+      const fee = account.fee || 0;
+
+      const now = new Date();
+      const currentMonth = now.getMonth() + 1;
+      const currentYear = now.getFullYear();
+
+      resultsDiv.innerHTML = '';
+
+      const fetchMonths = [];
+      for (let i = 0; i < 12; i++) {
+        let date = new Date(currentYear, currentMonth - 1 - i);
+        fetchMonths.push({
+          year: date.getFullYear(),
+          month: date.getMonth() + 1
+        });
+      }
+
+
+      for (const { year, month } of fetchMonths) {
+        const res = await fetch(`https://social-trading.exness.com/st/v1/managers/accounts/${accId}/stats/profitability/?year=${year}&month=${month}`);
+        const json = await res.json();
+        renderMonth(year, month, json.result.data, json.result.total, fee);
+      }
+    }
+
+    function renderMonth(year, month, data, total, fee) {
+      const container = document.createElement("div");
+      container.className = "month-container";
+      const title = document.createElement("div");
+      title.className = "month-title";
+      title.textContent = `${year}-${String(month).padStart(2, '0')}`;
+
+      const totalDiv = document.createElement("div");
+      totalDiv.className = "total-profit";
+      let afterFeesText = '';
+      if (total > 0 && fee) {
+        const afterFees = total * (1 - fee / 100);
+        afterFeesText = ` | Total After Fees (${fee}%): ${afterFees.toFixed(2)}%`;
+      }
+      totalDiv.textContent = `Total Profit: ${total.toFixed(2)}%${afterFeesText}`;
+
+      const grid = document.createElement("div");
+      grid.className = "days-grid";
+      data.forEach(day => {
+        const card = document.createElement("div");
+        card.className = "day-card";
+        card.innerHTML = `
+          <div><strong>Day ${day.key}</strong></div>
+          <div class="${day.profitability < 0 ? 'negative' : 'positive'}">${day.profitability}%</div>
+        `;
+        grid.appendChild(card);
+      });
+
+      container.appendChild(title);
+      container.appendChild(totalDiv);
+      container.appendChild(grid);
+      resultsDiv.appendChild(container);
+    }
+
+    accountSelect.addEventListener("change", fetchData);
+    populateAccounts();
+  </script>
+</body>
+</html>
