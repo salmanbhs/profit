@@ -441,7 +441,14 @@
 
 
         const openTradesCountEl = document.getElementById('openTradesCount');
-        openTradesCountEl.className = totalProfit >= 0 ? 'display-3 animated-numberprofit-positive' : 'display-3 animated-number profit-negative';
+        openTradesCountEl.className = 'display-3';
+
+        if (totalProfit > 0) {
+          openTradesCountEl.classList.add('profit-positive');
+        } else if (totalProfit < 0) {
+          openTradesCountEl.classList.add('profit-negative');
+        }
+
 
 
 
