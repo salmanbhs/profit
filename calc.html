@@ -20,24 +20,30 @@
       margin: auto;
       box-shadow: 0 4px 6px rgba(0,0,0,0.1);
     }
-    label, input, select {
-      display: block;
-      width: 100%;
-      margin-bottom: 1rem;
+    label {
+      margin-bottom: 0.25rem;
+      font-weight: bold;
     }
     input, select {
       padding: 0.5rem;
       font-size: 1rem;
+      margin-bottom: 1rem;
+      width: 100%;
+      border: 1px solid #ccc;
+      border-radius: 0.5rem;
     }
     button {
       background-color: #2563eb;
       color: white;
       border: none;
       padding: 0.75rem;
-      width: 100%;
       font-size: 1rem;
       border-radius: 0.5rem;
       cursor: pointer;
+      transition: background-color 0.3s ease;
+    }
+    button:hover {
+      background-color: #1d4ed8;
     }
     .results {
       margin-top: 2rem;
@@ -58,55 +64,88 @@
     .tab.active {
       display: block;
     }
+    .tab-buttons {
+      display: flex;
+      gap: 0.5rem;
+      margin-bottom: 1rem;
+      justify-content: center;
+    }
     .tab-buttons button {
-      margin: 0.25rem;
-      padding: 0.5rem 1rem;
+      flex: 1;
       border: 1px solid #ccc;
       border-radius: 5px;
       background: #e5e7eb;
       cursor: pointer;
+      padding: 0.5rem;
+      font-weight: bold;
+    }
+    .form-grid {
+      display: grid;
+      gap: 1rem;
     }
   </style>
 </head>
 <body>
   <div class="container">
     <h2>حاسبة توزيع الأرباح</h2>
-    <label for="capital">رأس المال ($):</label>
-    <input type="number" id="capital" />
+    
+    <div class="form-grid">
+      <label for="capital">رأس المال ($):</label>
+      <input type="number" id="capital" min="0" />
 
-    <label for="profit">الربح الشهري ($):</label>
-    <input type="number" id="profit" />
+<label for="profit">الربح الشهري:</label>
+<div style="display: flex; gap: 0.5rem;">
+  <input type="number" id="profit" placeholder="مثلاً: 200 أو 10" />
+  <select id="profitType">
+    <option value="amount">$</option>
+    <option value="percent">% من رأس المال</option>
+  </select>
+</div>
 
-    <label for="reserve">المبلغ الاحتياطي الحالي ($):</label>
-    <input type="number" id="reserve" />
+
+      <label for="reserve">المبلغ الاحتياطي الحالي ($):</label>
+      <input type="number" id="reserve" min="0" />
+      
+      <label for="currency">العملة:</label>
+<select id="currency">
+  <option value="usd" selected>$ الدولار</option>
+  <option value="bhd">د.ب الدينار البحريني</option>
+</select>
+    </div>
+    
+    
 
     <div class="tabs">
       <div class="tab-buttons">
         <button onclick="showTab('main')">📊 الحاسبة</button>
         <button onclick="showTab('settings')">⚙️ النسب</button>
       </div>
+
       <div class="tab active" id="main">
         <button onclick="calculate()">احسب التوزيع</button>
         <div class="results" id="results" style="display: none;"></div>
       </div>
+
       <div class="tab" id="settings">
-        <label for="withdrawLow">نسبة السحب (احتياطي أقل من النصف):</label>
-        <input type="number" id="withdrawLow" value="20" />
+        <div class="form-grid">
+          <label for="withdrawLow">نسبة السحب (احتياطي أقل من النصف):</label>
+          <input type="number" id="withdrawLow" value="20" min="0" max="100" />
 
-        <label for="reserveLow">نسبة الاحتياطي (احتياطي أقل من النصف):</label>
-        <input type="number" id="reserveLow" value="50" />
+          <label for="reserveLow">نسبة الاحتياطي (احتياطي أقل من النصف):</label>
+          <input type="number" id="reserveLow" value="50" min="0" max="100" />
 
-        <label for="reinvestLow">نسبة إعادة الاستثمار (احتياطي أقل من النصف):</label>
-        <input type="number" id="reinvestLow" value="30" />
+          <label for="reinvestLow">نسبة إعادة الاستثمار (احتياطي أقل من النصف):</label>
+          <input type="number" id="reinvestLow" value="30" min="0" max="100" />
 
-        <label for="withdrawHigh">نسبة السحب (احتياطي أكبر أو يساوي النصف):</label>
-        <input type="number" id="withdrawHigh" value="40" />
+          <label for="withdrawHigh">نسبة السحب (احتياطي أكبر أو يساوي النصف):</label>
+          <input type="number" id="withdrawHigh" value="40" min="0" max="100" />
 
-        <label for="reserveHigh">نسبة الاحتياطي (احتياطي أكبر أو يساوي النصف):</label>
-        <input type="number" id="reserveHigh" value="10" />
+          <label for="reserveHigh">نسبة الاحتياطي (احتياطي أكبر أو يساوي النصف):</label>
+          <input type="number" id="reserveHigh" value="10" min="0" max="100" />
 
-        <label for="reinvestHigh">نسبة إعادة الاستثمار (احتياطي أكبر أو يساوي النصف):</label>
-        <input type="number" id="reinvestHigh" value="50" />
+          <label for="reinvestHigh">نسبة إعادة الاستثمار (احتياطي أكبر أو يساوي النصف):</label>
+          <input type="number" id="reinvestHigh" value="50" min="0" max="100" />
+        </div>
       </div>
     </div>
   </div>
@@ -117,42 +156,66 @@
       document.getElementById(tabId).classList.add('active');
     }
 
-    function calculate() {
-      const capital = parseFloat(document.getElementById("capital").value);
-      const profit = parseFloat(document.getElementById("profit").value);
-      const reserve = parseFloat(document.getElementById("reserve").value);
-      const reserveThreshold = capital / 2;
+function calculate() {
+  const capital = parseFloat(document.getElementById("capital").value);
+  let profit = parseFloat(document.getElementById("profit").value);
+  const profitType = document.getElementById("profitType").value;
+  const reserve = parseFloat(document.getElementById("reserve").value);
+  const reserveThreshold = capital / 2;
 
-      let withdrawPercent, reservePercent, reinvestPercent, strategy;
+  if (isNaN(capital) || isNaN(profit) || isNaN(reserve)) {
+    alert("يرجى إدخال جميع القيم بشكل صحيح");
+    return;
+  }
 
-      if (reserve < reserveThreshold) {
-        withdrawPercent = parseFloat(document.getElementById("withdrawLow").value) / 100;
-        reservePercent = parseFloat(document.getElementById("reserveLow").value) / 100;
-        reinvestPercent = parseFloat(document.getElementById("reinvestLow").value) / 100;
-        strategy = "🚨 الاحتياطي أقل من نصف رأس المال - يتم اتباع النسب المدخلة.";
-      } else {
-        withdrawPercent = parseFloat(document.getElementById("withdrawHigh").value) / 100;
-        reservePercent = parseFloat(document.getElementById("reserveHigh").value) / 100;
-        reinvestPercent = parseFloat(document.getElementById("reinvestHigh").value) / 100;
-        strategy = "✅ الاحتياطي يساوي أو يزيد عن نصف رأس المال - يتم اتباع النسب المدخلة.";
-      }
+  // إذا كان الربح نسبة مئوية من رأس المال
+  if (profitType === "percent") {
+    profit = (capital * profit) / 100;
+  }
 
-      const withdraw = profit * withdrawPercent;
-      const reserveAdd = profit * reservePercent;
-      const reinvest = profit * reinvestPercent;
-      const totalReserve = reserve + reserveAdd;
-      const newCapital = capital + reinvest;
+  let withdrawPercent, reservePercent, reinvestPercent, strategy;
 
-      document.getElementById("results").style.display = "block";
-      document.getElementById("results").innerHTML = `
-        <p><strong>${strategy}</strong></p>
-        <p>📥 السحب: <strong>${withdraw.toFixed(2)} $</strong> (${(withdrawPercent * 100).toFixed(0)}%)</p>
-        <p>💰 الإضافة إلى الاحتياطي: <strong>${reserveAdd.toFixed(2)} $</strong> (${(reservePercent * 100).toFixed(0)}%)</p>
-        <p>📈 إعادة الاستثمار: <strong>${reinvest.toFixed(2)} $</strong> (${(reinvestPercent * 100).toFixed(0)}%)</p>
-        <p>💼 الاحتياطي الجديد: <strong>${totalReserve.toFixed(2)} $</strong></p>
-        <p>🏦 رأس المال الجديد: <strong>${newCapital.toFixed(2)} $</strong></p>
-      `;
-    }
+  if (reserve < reserveThreshold) {
+    withdrawPercent = parseFloat(document.getElementById("withdrawLow").value) / 100;
+    reservePercent = parseFloat(document.getElementById("reserveLow").value) / 100;
+    reinvestPercent = parseFloat(document.getElementById("reinvestLow").value) / 100;
+    strategy = "🚨 الاحتياطي أقل من نصف رأس المال .";
+  } else {
+    withdrawPercent = parseFloat(document.getElementById("withdrawHigh").value) / 100;
+    reservePercent = parseFloat(document.getElementById("reserveHigh").value) / 100;
+    reinvestPercent = parseFloat(document.getElementById("reinvestHigh").value) / 100;
+    strategy = "✅ الاحتياطي يساوي أو يزيد عن نصف رأس المال.";
+  }
+
+  const withdraw = profit * withdrawPercent;
+  const reserveAdd = profit * reservePercent;
+  const reinvest = profit * reinvestPercent;
+  const totalReserve = reserve + reserveAdd;
+  const newCapital = capital + reinvest;
+  const currency = document.getElementById("currency").value;
+  
+    const rate = currency === "bhd" ? 0.378 : 1;
+    const symbol = currency === "bhd" ? "د.ب" : "$";
+    
+    // تحويل القيم
+    const withdrawConverted = withdraw * rate;
+    const reserveAddConverted = reserveAdd * rate;
+    const reinvestConverted = reinvest * rate;
+    const totalReserveConverted = totalReserve * rate;
+    const newCapitalConverted = newCapital * rate;
+
+  document.getElementById("results").style.display = "block";
+document.getElementById("results").innerHTML = `
+  <p><strong>${strategy}</strong></p>
+  <p>📥 السحب: <strong>${withdrawConverted.toFixed(2)} ${symbol}</strong> (${(withdrawPercent * 100).toFixed(0)}%)</p>
+  <p>💰 الإضافة إلى الاحتياطي: <strong>${reserveAddConverted.toFixed(2)} ${symbol}</strong> (${(reservePercent * 100).toFixed(0)}%)</p>
+  <p>📈 إعادة الاستثمار: <strong>${reinvestConverted.toFixed(2)} ${symbol}</strong> (${(reinvestPercent * 100).toFixed(0)}%)</p>
+  <p>💼 الاحتياطي الجديد: <strong>${totalReserveConverted.toFixed(2)} ${symbol}</strong></p>
+  <p>🏦 رأس المال الجديد: <strong>${newCapitalConverted.toFixed(2)} ${symbol}</strong></p>
+`;
+
+}
+
   </script>
 </body>
 </html>
