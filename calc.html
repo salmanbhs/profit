@@ -163,6 +163,7 @@ function calculate() {
   const reserve = parseFloat(document.getElementById("reserve").value);
   const reserveThreshold = capital / 2;
 
+
   if (isNaN(capital) || isNaN(profit) || isNaN(reserve)) {
     alert("يرجى إدخال جميع القيم بشكل صحيح");
     return;
@@ -172,7 +173,7 @@ function calculate() {
   if (profitType === "percent") {
     profit = (capital * profit) / 100;
   }
-
+const profitPercent = (profit / capital) * 100;
   let withdrawPercent, reservePercent, reinvestPercent, strategy;
 
   if (reserve < reserveThreshold) {
@@ -206,6 +207,12 @@ function calculate() {
 
   document.getElementById("results").style.display = "block";
 document.getElementById("results").innerHTML = `
+      <hr>
+      <p><strong>📊 التفاصيل :</strong></p>
+      <p>💵 رأس المال الحالي: <strong>${(capital * rate).toFixed(2)} ${symbol}</strong></p>
+      <p>📈 الربح: <strong>${(profit * rate).toFixed(2)} ${symbol}</strong> (${profitPercent}%)</p>
+      <p>💼 الاحتياطي السابق: <strong>${(reserve * rate).toFixed(2)} ${symbol}</strong></p>
+      <hr>
   <p><strong>${strategy}</strong></p>
   <p>📥 السحب: <strong>${withdrawConverted.toFixed(2)} ${symbol}</strong> (${(withdrawPercent * 100).toFixed(0)}%)</p>
   <p>💰 الإضافة إلى الاحتياطي: <strong>${reserveAddConverted.toFixed(2)} ${symbol}</strong> (${(reservePercent * 100).toFixed(0)}%)</p>
